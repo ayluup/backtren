@@ -33,6 +33,8 @@ app.get("/", (req, res) => {
 });
 
 // Documentación Swagger
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/docs", (req, res) => {
+  res.send(swaggerUi.generateHTML(swaggerSpec));
+});
 
 export default app;
