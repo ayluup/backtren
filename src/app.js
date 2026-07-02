@@ -34,9 +34,5 @@ app.get("/", (req, res) => {
 
 // Documentación Swagger
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get("/docs.json", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  res.send(swaggerSpec);
-});
 
 export default app;

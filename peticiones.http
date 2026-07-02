@@ -3,6 +3,8 @@
 @subject={{url}}/api/subjects
 @enrollment={{url}}/api/enrollments
 
+@vercel=https://backtren-sigma.vercel.app/
+
 
 ###
 GET {{url}}/api/health
