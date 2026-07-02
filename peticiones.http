@@ -1,0 +1,141 @@
+@url=http://localhost:3000
+@user={{url}}/api/users
+@subject={{url}}/api/subjects
+@enrollment={{url}}/api/enrollments
+
+
+###
+GET {{url}}/api/health
+
+###
+GET {{url}}/api/health/db
+
+
+### Crear usuario
+POST {{user}}
+Content-Type: application/json
+
+{
+    "name": "alarcon",
+    "email": "alarcon@example.com",
+    "password": "1234",
+    "role": "PROFESSOR"
+}
+
+###
+
+### Crear alumno
+POST {{user}}
+Content-Type: application/json
+
+{
+    "name": "david",
+    "email": "david@gmail.com",
+    "password": "1234",
+    "role": "STUDENT"
+}
+
+###
+
+### Listar usuarios
+GET {{user}}
+
+###
+
+### Editar usuario
+PUT {{user}}/1
+Content-Type: application/json
+
+{
+    "name": "alarcon Actualizado",
+    "email": "alarc2@example.com",
+    "password": "5678",
+    "role": "PROFESSOR"
+}
+
+###
+
+### Eliminar usuario
+DELETE {{user}}/1
+
+
+
+### Crear materia
+POST {{subject}}
+Content-Type: application/json
+
+{
+    "name": "Programación II",
+    "description": "Introducción a css",
+    "professor_id": 2
+}
+
+###
+
+### Listar materias
+GET {{subject}}
+
+###
+
+### Editar materia
+PUT {{subject}}/1
+Content-Type: application/json
+
+{
+    "name": "Programación III",
+    "description": "POO en uml",
+    "professor_id": 2
+}
+
+###
+
+### Eliminar materia
+DELETE {{subject}}/1
+
+
+### Crear inscripción
+POST {{enrollment}}
+Content-Type: application/json
+
+{
+    "student_id": 2,
+    "subject_id": 1,
+    "grade": 8.5
+}
+
+###
+
+### Listar inscripciones
+GET {{enrollment}}
+
+###
+
+### Editar inscripción
+PUT {{enrollment}}/1
+Content-Type: application/json
+
+{
+    "student_id": 2,
+    "subject_id": 1,
+    "grade": 10
+}
+
+###
+
+### Eliminar inscripción
+DELETE {{enrollment}}/4
+
+### Consultar alumno
+GET {{user}}/student/2
+
+###
+
+### Consultar profesor
+GET {{user}}/professor/1
+
+###
+
+### Consultar materia
+
+GET {{subject}}/1/detail
+

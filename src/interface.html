@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Tester</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f172a;
+        --panel: #111827;
+        --panel-2: #1f2937;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --success: #22c55e;
+        --danger: #ef4444;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, var(--bg), #172554);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 24px;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: rgba(17, 24, 39, 0.92);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      }
+
+      h1 { margin-top: 0; }
+      p { color: var(--muted); }
+
+      .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+      .card {
+        background: var(--panel);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      label { display: block; font-size: 0.95rem; margin-bottom: 6px; color: var(--muted); }
+      input, select, textarea, button {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: var(--panel-2);
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+
+      textarea { min-height: 140px; resize: vertical; }
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        color: #082f49;
+        font-weight: 700;
+        border: none;
+      }
+
+      .row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; margin-bottom: 12px; }
+      .chip-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0 16px; }
+      .chip {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(14, 165, 233, 0.12));
+        color: var(--text);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        padding: 10px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        text-align: left;
+      }
+      .chip strong { display: block; margin-bottom: 2px; }
+      .chip small { color: var(--muted); }
+
+      .result {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #020617;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 12px;
+        min-height: 250px;
+        color: #e2e8f0;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+      }
+      .ok { background: rgba(34, 197, 94, 0.16); color: var(--success); }
+      .err { background: rgba(239, 68, 68, 0.16); color: var(--danger); }
+
+      @media (max-width: 860px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Interfaz de pruebas de la API</h1>
+      <p>Haz clic en un botón y prueba los endpoints más usados en un solo paso.</p>
+
+      <div class="chip-list" id="quickActions"></div>
+
+      <div class="grid">
+        <div class="card">
+          <form id="requestForm">
+            <div class="row">
+              <div>
+                <label for="method">Método</label>
+                <select id="method" name="method">
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </div>
+              <div>
+                <label for="endpoint">Endpoint</label>
+                <input id="endpoint" name="endpoint" placeholder="/api/users" value="/api/health" required />
+              </div>
+            </div>
+
+            <label for="body">Body (JSON)</label>
+            <textarea id="body" name="body" placeholder='{"name":"Ejemplo"}'></textarea>
+
+            <button type="submit">Enviar petición</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <div id="status" class="status">Esperando petición...</div>
+          <div id="response" class="result">Aquí verás la respuesta del servidor.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const quickActions = [
+        { label: 'Ver usuarios', method: 'GET', endpoint: '/api/users', body: '' },
+        { label: 'Crear usuario', method: 'POST', endpoint: '/api/users', body: '{"name":"Ana","email":"ana@test.com","password":"1234","role":"STUDENT"}' },
+        { label: 'Ver materias', method: 'GET', endpoint: '/api/subjects', body: '' },
+        { label: 'Crear materia', method: 'POST', endpoint: '/api/subjects', body: '{"name":"Matemáticas","description":"Clase de matemáticas","professor_id":2}' },
+        { label: 'Ver inscripciones', method: 'GET', endpoint: '/api/enrollments', body: '' },
+        { label: 'Crear inscripción', method: 'POST', endpoint: '/api/enrollments', body: '{"student_id":2,"subject_id":1,"grade":10}' }
+      ];
+
+      const actionsContainer = document.getElementById('quickActions');
+      quickActions.forEach(item => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chip';
+        btn.innerHTML = `<strong>${item.label}</strong><small>${item.method} ${item.endpoint}</small>`;
+        btn.addEventListener('click', () => {
+          document.getElementById('method').value = item.method;
+          document.getElementById('endpoint').value = item.endpoint;
+          document.getElementById('body').value = item.body || '';
+        });
+        actionsContainer.appendChild(btn);
+      });
+
+      document.getElementById('requestForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const method = document.getElementById('method').value;
+        const rawEndpoint = document.getElementById('endpoint').value.trim();
+        const body = document.getElementById('body').value.trim();
+
+        const statusEl = document.getElementById('status');
+        const responseEl = document.getElementById('response');
+
+        if (!rawEndpoint) {
+          statusEl.textContent = 'Debes indicar un endpoint';
+          statusEl.className = 'status err';
+          responseEl.textContent = 'Introduce la ruta del endpoint.';
+          return;
+        }
+
+        const endpoint = rawEndpoint.startsWith('http')
+          ? rawEndpoint
+          : rawEndpoint.startsWith('/')
+            ? rawEndpoint
+            : `/${rawEndpoint}`;
+
+        const url = endpoint.startsWith('http') ? endpoint : new URL(endpoint, window.location.origin).toString();
+
+        const options = {
+          method,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+
+        if (body && method !== 'GET') {
+          options.body = body;
+        }
+
+        try {
+          const response = await fetch(url, options);
+          const text = await response.text();
+          let data = text;
+          let displayText = text;
+
+          try {
+            data = JSON.parse(text);
+            displayText = JSON.stringify(data, null, 2);
+          } catch (e) {
+            data = text;
+            displayText = text;
+          }
+
+          if (!response.ok && text.includes('Cannot GET')) {
+            displayText = `No se pudo completar la petición (${response.status}). Verifica que el servidor esté corriendo en http://localhost:3000 y que la ruta sea correcta.`;
+          }
+
+          statusEl.textContent = `${response.status} ${response.statusText}`;
+          statusEl.className = `status ${response.ok ? 'ok' : 'err'}`;
+          responseEl.textContent = displayText;
+        } catch (error) {
+          statusEl.textContent = 'Error';
+          statusEl.className = 'status err';
+          responseEl.textContent = error.message;
+        }
+      });
+    </script>
+  </body>
+</html>
