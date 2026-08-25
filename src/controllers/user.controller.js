@@ -7,6 +7,8 @@ import {
   getProfessorByIdService,
   getStudentByIdService,
 } from "../services/user.service.js";
+import { generarToken } from "../security/jwt.js";
+import { loginService } from "../services/user.service.js";
 
 export const createUser = async (req, res) => {
   try {
@@ -130,6 +132,49 @@ export const getStudentById = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: error.message
+    });
+  }
+};
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email y contraseña son obligatorios",
+      });
+    }
+
+    const user = await loginService(email, password);
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Email o contraseña incorrectos",
+      });
+    }
+
+    if (user.estado === "bloqueado") {
+      return res.status(423).json({
+        message: "Cuenta bloqueada después de 10 intentos fallidos",
+      });
+    }
+
+    if (user.estado === "incorrecto") {
+      return res.status(401).json({
+        message: "Email o contraseña incorrectos",
+        intentosRestantes: user.intentosRestantes,
+      });
+    }
+
+    const token = generarToken(user);
+
+    res.status(200).json({
+      token,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
     });
   }
 };

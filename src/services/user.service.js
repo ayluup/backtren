@@ -1,7 +1,21 @@
 
 import bcrypt from "bcrypt";
 import pool from "../database.js";
+
+const MAX_LOGIN_ATTEMPTS = 10;
+
+const normalizeRole = (role) => {
+  const normalizedRole = String(role || "").trim().toUpperCase();
+
+  if (!["PROFESSOR", "STUDENT"].includes(normalizedRole)) {
+    throw new Error("El rol debe ser PROFESSOR o STUDENT.");
+  }
+
+  return normalizedRole;
+};
+
 export const createUserService = async ({ name, email, password, role }) => {
+  const normalizedRole = normalizeRole(role);
   const passwordHash = await bcrypt.hash(password, 10);
 
   const query = `
@@ -9,13 +23,15 @@ export const createUserService = async ({ name, email, password, role }) => {
       name,
       email,
       password_hash,
-      role
+      role,
+      failed_login_attempts,
+      locked
     )
     VALUES ($1, $2, $3, $4)
     RETURNING id, name, email, role, created_at
   `;
 
-  const values = [name, email, passwordHash, role];
+  const values = [name, email, passwordHash, normalizedRole];
 
   const { rows } = await pool.query(query, values);
 
@@ -42,6 +58,7 @@ export const getAllUsersService = async () => {
 };
 
 export const updateUserService = async (id, { name, email, role }) => {
+  const normalizedRole = normalizeRole(role);
   const query = `
     UPDATE users
     SET
@@ -58,7 +75,7 @@ export const updateUserService = async (id, { name, email, role }) => {
       updated_at
   `;
 
-  const values = [name, email, role, id];
+  const values = [name, email, normalizedRole, id];
 
   const { rows } = await pool.query(query, values);
 
@@ -120,4 +137,59 @@ export const getStudentByIdService = async (id) => {
   const result = await pool.query(query, [id]);
 
   return result.rows[0];
+};
+
+export const loginService = async (email, password) => {
+  const query = `
+    SELECT
+      id,
+      name,
+      email,
+      password_hash,
+      role,
+      failed_login_attempts,
+      locked
+    FROM users
+    WHERE email = $1
+      AND deleted_at IS NULL
+  `;
+
+  const { rows } = await pool.query(query, [email]);
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const user = rows[0];
+
+  if (user.locked || user.failed_login_attempts >= MAX_LOGIN_ATTEMPTS) {
+    return { estado: "bloqueado" };
+  }
+
+  const passwordCorrecta = await bcrypt.compare(password, user.password_hash);
+
+  if (!passwordCorrecta) {
+    const { rows: attemptRows } = await pool.query(
+      `UPDATE users
+       SET failed_login_attempts = failed_login_attempts + 1,
+           locked = failed_login_attempts + 1 >= $2
+       WHERE id = $1
+       RETURNING failed_login_attempts, locked`,
+      [user.id, MAX_LOGIN_ATTEMPTS]
+    );
+
+    const attempts = attemptRows[0];
+
+    return {
+      estado: attempts.locked ? "bloqueado" : "incorrecto",
+      intentosRestantes: Math.max(MAX_LOGIN_ATTEMPTS - attempts.failed_login_attempts, 0),
+    };
+  }
+
+  await pool.query(
+    `UPDATE users SET failed_login_attempts = 0 WHERE id = $1`,
+    [user.id]
+  );
+
+  return user;
 };

@@ -6,6 +6,7 @@ import {
   editEnrollment,
   removeEnrollment,
 } from "../controllers/enrollments.controllers.js";
+import { verificarToken, permitirRoles } from "../security/auth.js";
 
 const router = Router();
 
@@ -39,8 +40,8 @@ const router = Router();
  *       201:
  *         description: Inscripción creada correctamente
  */
-router.get("/", listEnrollments);
-router.post("/", createNewEnrollment);
+router.get("/", verificarToken, permitirRoles("PROFESSOR", "STUDENT"), listEnrollments);
+router.post("/", verificarToken, permitirRoles("PROFESSOR", "STUDENT"), createNewEnrollment);
 
 /**
  * @openapi
@@ -83,7 +84,7 @@ router.post("/", createNewEnrollment);
  *       200:
  *         description: Inscripción eliminada correctamente
  */
-router.put("/:id", editEnrollment);
-router.delete("/:id", removeEnrollment);
+router.put("/:id", verificarToken, permitirRoles("PROFESSOR"), editEnrollment);
+router.delete("/:id", verificarToken, permitirRoles("PROFESSOR"), removeEnrollment);
 
 export default router;

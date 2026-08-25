@@ -6,6 +6,8 @@ CREATE TABLE users (
     
     -- ✅ SOLUCIÓN: Usamos VARCHAR con CHECK en lugar de CREATE TYPE
     role VARCHAR(20) DEFAULT 'STUDENT' NOT NULL CHECK (role IN ('PROFESSOR', 'STUDENT')),
+    failed_login_attempts INT DEFAULT 0 NOT NULL CHECK (failed_login_attempts >= 0),
+    locked BOOLEAN DEFAULT FALSE NOT NULL,
     
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -15,6 +17,10 @@ CREATE TABLE users (
 -- Índices para optimizar búsquedas frecuentes
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_deleted_at ON users(deleted_at);
+
+-- Ejecutar también si la tabla users ya existía
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT DEFAULT 0 NOT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked BOOLEAN DEFAULT FALSE NOT NULL;
 
 -- ==========================================
 -- 2. TABLA DE MATERIAS

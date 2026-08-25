@@ -118,6 +118,27 @@
 
       <div class="grid">
         <div class="card">
+          <h2>Login</h2>
+          <form id="loginForm">
+            <div class="row">
+              <div>
+                <label for="loginEmail">Email</label>
+                <input id="loginEmail" name="loginEmail" type="email" placeholder="email@ejemplo.com" required />
+              </div>
+              <div>
+                <label for="loginPassword">Contraseña</label>
+                <input id="loginPassword" name="loginPassword" type="password" placeholder="********" required />
+              </div>
+            </div>
+            <button type="submit">Iniciar sesión</button>
+            <button type="button" id="logoutButton" style="margin-top:12px;background:#ef4444;color:white;">Cerrar sesión</button>
+            <div id="tokenInfo" style="margin-top:12px;font-size:.9rem;color:var(--muted);">Token no disponible</div>
+            <label for="tokenValue" style="margin-top:12px;color:var(--muted);">Token JWT</label>
+            <textarea id="tokenValue" readonly style="min-height:80px;white-space:pre-wrap;overflow-x:auto;background:#0f172a;">No hay token</textarea>
+          </form>
+        </div>
+
+        <div class="card">
           <form id="requestForm">
             <div class="row">
               <div>
@@ -152,7 +173,8 @@
     <script>
       const quickActions = [
         { label: 'Ver usuarios', method: 'GET', endpoint: '/api/users', body: '' },
-        { label: 'Crear usuario', method: 'POST', endpoint: '/api/users', body: '{"name":"Ana","email":"ana@test.com","password":"1234","role":"STUDENT"}' },
+        { label: 'Crear profesor', method: 'POST', endpoint: '/api/users', body: '{"name":"Profesor","email":"profesor@test.com","password":"1234","role":"PROFESSOR"}' },
+        { label: 'Crear alumno', method: 'POST', endpoint: '/api/users', body: '{"name":"Ana","email":"ana@test.com","password":"1234","role":"STUDENT"}' },
         { label: 'Ver materias', method: 'GET', endpoint: '/api/subjects', body: '' },
         { label: 'Crear materia', method: 'POST', endpoint: '/api/subjects', body: '{"name":"Matemáticas","description":"Clase de matemáticas","professor_id":2}' },
         { label: 'Ver inscripciones', method: 'GET', endpoint: '/api/enrollments', body: '' },
@@ -171,6 +193,55 @@
           document.getElementById('body').value = item.body || '';
         });
         actionsContainer.appendChild(btn);
+      });
+
+      document.getElementById('loginForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        const tokenInfo = document.getElementById('tokenInfo');
+
+        if (!email || !password) {
+          tokenInfo.textContent = 'Completa email y contraseña.';
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/users/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            tokenInfo.textContent = data.message || 'Error de login';
+            tokenInfo.style.color = 'var(--danger)';
+            document.getElementById('tokenValue').value = '';
+            return;
+          }
+
+          const token = data.token;
+          localStorage.setItem('apiToken', token);
+          tokenInfo.textContent = 'Login exitoso. Token guardado en localStorage.';
+          tokenInfo.style.color = 'var(--success)';
+          document.getElementById('tokenValue').value = token;
+        } catch (error) {
+          tokenInfo.textContent = error.message;
+          tokenInfo.style.color = 'var(--danger)';
+          document.getElementById('tokenValue').value = '';
+        }
+      });
+
+      document.getElementById('logoutButton').addEventListener('click', () => {
+        localStorage.removeItem('apiToken');
+        document.getElementById('tokenInfo').textContent = 'Sesión cerrada. Token eliminado.';
+        document.getElementById('tokenInfo').style.color = 'var(--muted)';
+        document.getElementById('tokenValue').value = '';
       });
 
       document.getElementById('requestForm').addEventListener('submit', async (event) => {
@@ -198,11 +269,18 @@
 
         const url = endpoint.startsWith('http') ? endpoint : new URL(endpoint, window.location.origin).toString();
 
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+
+        const storedToken = localStorage.getItem('apiToken');
+        if (storedToken) {
+          headers.Authorization = `Bearer ${storedToken}`;
+        }
+
         const options = {
           method,
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers,
         };
 
         if (body && method !== 'GET') {

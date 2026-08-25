@@ -7,6 +7,7 @@ import {
   removeSubject,
   subjectDetail,
 } from "../controllers/subjects.controller.js";
+import { verificarToken, permitirRoles } from "../security/auth.js";
 
 const router = Router();
 
@@ -40,8 +41,8 @@ const router = Router();
  *       201:
  *         description: Materia creada correctamente
  */
-router.get("/", listSubjects);
-router.post("/", createNewSubject);
+router.get("/", verificarToken, permitirRoles("PROFESSOR", "STUDENT"), listSubjects);
+router.post("/", verificarToken, permitirRoles("PROFESSOR"), createNewSubject);
 
 /**
  * @openapi
@@ -84,8 +85,8 @@ router.post("/", createNewSubject);
  *       200:
  *         description: Materia eliminada correctamente
  */
-router.put("/:id", editSubject);
-router.delete("/:id", removeSubject);
+router.put("/:id", verificarToken, permitirRoles("PROFESSOR"), editSubject);
+router.delete("/:id", verificarToken, permitirRoles("PROFESSOR"), removeSubject);
 
 /**
  * @openapi
@@ -103,6 +104,6 @@ router.delete("/:id", removeSubject);
  *       200:
  *         description: Detalle de la materia encontrado
  */
-router.get("/:id/detail", subjectDetail);
+router.get("/:id/detail", verificarToken, permitirRoles("PROFESSOR", "STUDENT"), subjectDetail);
 
 export default router;
