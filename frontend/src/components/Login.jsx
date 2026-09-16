@@ -17,9 +17,9 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const success = await login(loginEmail, loginPassword);
-    if (success) {
-      navigate('/dashboard');
+    const role = await login(loginEmail, loginPassword);
+    if (role) {
+      navigate(role === 'profesor' ? '/profesor' : '/estudiante');
     } else {
       setMessage({ type: 'error', text: 'Email o contraseña incorrectos' });
     }
@@ -36,13 +36,7 @@ export default function Login() {
         role,
       });
 
-      const success = await login(email, password);
-      if (success) {
-        navigate('/dashboard');
-        return;
-      }
-
-      setMessage({ type: 'success', text: 'Usuario creado correctamente. Inicia sesión manualmente' });
+      setMessage({ type: 'success', text: 'Usuario creado correctamente. Inicia sesión con tus datos' });
       setShowRegister(false);
       setName('');
       setEmail('');

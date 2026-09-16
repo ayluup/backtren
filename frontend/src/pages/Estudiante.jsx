@@ -54,29 +54,6 @@ export default function Estudiante() {
       )
   );
 
-  const handleRemoveSubject = async (subjectId) => {
-    const enrollment = (enrollments || []).find(
-      (item) =>
-        item.student_id === Number(user?.id) &&
-        item.subject_id === Number(subjectId) &&
-        item.deleted_at === null
-    );
-
-    if (!enrollment) {
-      setMessage({ type: 'error', text: 'No se encontró la inscripción para esta materia' });
-      return;
-    }
-
-    try {
-      await axios.delete(`${API}/api/enrollments/${enrollment.id}`, { headers });
-      setMessage({ type: 'success', text: 'Materia eliminada de tu inscripción' });
-      loadData();
-    } catch (error) {
-      console.error(error);
-      setMessage({ type: 'error', text: error.response?.data?.message || 'No se pudo eliminar la materia' });
-    }
-  };
-
   const handleInscription = async () => {
     if (!selectedSubjectId) {
       setMessage({ type: 'error', text: 'Seleccioná una materia para inscribirte' });
@@ -137,13 +114,6 @@ export default function Estudiante() {
                       <strong>{subject.name}</strong>
                       <span style={{ display: 'block' }}>{subject.description}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSubject(subject.id)}
-                      style={styles.dangerButton}
-                    >
-                      Eliminar
-                    </button>
                   </div>
                 </div>
               ))}
@@ -270,15 +240,6 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '0.75rem'
-  },
-  dangerButton: {
-    padding: '0.5rem 0.8rem',
-    backgroundColor: '#be123c',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 600
   },
   back: {
     color: '#166534',

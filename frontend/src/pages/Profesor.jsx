@@ -13,13 +13,8 @@ export default function Profesor() {
   const [subjectName, setSubjectName] = useState('');
   const [subjectDescription, setSubjectDescription] = useState('');
   const [selectedSubject, setSelectedSubject] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [expandedSubjectId, setExpandedSubjectId] = useState(null);
-  const [newStudentName, setNewStudentName] = useState('');
-  const [newStudentEmail, setNewStudentEmail] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [editName, setEditName] = useState('');
-  const [editEmail, setEditEmail] = useState('');
   const [editSubjectName, setEditSubjectName] = useState('');
   const [editSubjectDescription, setEditSubjectDescription] = useState('');
 
@@ -116,73 +111,6 @@ export default function Profesor() {
     setEditSubjectDescription(subject.description || '');
   };
 
-  const handleCreateStudent = async (e) => {
-    e.preventDefault();
-
-    try {
-      await axios.post(
-        `${API}/api/users`,
-        {
-          name: newStudentName,
-          email: newStudentEmail,
-          password: '123456',
-          role: 'STUDENT',
-        },
-        { headers }
-      );
-
-      setNewStudentName('');
-      setNewStudentEmail('');
-      setMessage({ type: 'success', text: 'Alumno creado correctamente' });
-      loadData();
-    } catch (error) {
-      console.error(error);
-      setMessage({ type: 'error', text: error.response?.data?.message || 'No se pudo crear el alumno' });
-    }
-  };
-
-  const handleEditStudent = async (e) => {
-    e.preventDefault();
-
-    if (!selectedStudent) return;
-
-    try {
-      await axios.put(
-        `${API}/api/users/${selectedStudent.id}`,
-        {
-          name: editName,
-          email: editEmail,
-          role: 'STUDENT',
-        },
-        { headers }
-      );
-
-      setSelectedStudent(null);
-      setMessage({ type: 'success', text: 'Alumno actualizado' });
-      loadData();
-    } catch (error) {
-      console.error(error);
-      setMessage({ type: 'error', text: error.response?.data?.message || 'No se pudo actualizar el alumno' });
-    }
-  };
-
-  const handleDeleteStudent = async (studentId) => {
-    try {
-      await axios.delete(`${API}/api/users/${studentId}`, { headers });
-      setMessage({ type: 'success', text: 'Alumno eliminado' });
-      loadData();
-    } catch (error) {
-      console.error(error);
-      setMessage({ type: 'error', text: error.response?.data?.message || 'No se pudo eliminar el alumno' });
-    }
-  };
-
-  const startEditingStudent = (student) => {
-    setSelectedStudent(student);
-    setEditName(student.name);
-    setEditEmail(student.email);
-  };
-
   const toggleSubject = (subjectId) => {
     setExpandedSubjectId((current) => (current === subjectId ? null : subjectId));
   };
@@ -248,29 +176,6 @@ export default function Profesor() {
         </div>
 
         <div style={styles.card}>
-          <h3>Crear alumno</h3>
-          <form onSubmit={handleCreateStudent} style={styles.form}>
-            <input
-              type="text"
-              placeholder="Nombre del alumno"
-              value={newStudentName}
-              onChange={(e) => setNewStudentName(e.target.value)}
-              style={styles.input}
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={newStudentEmail}
-              onChange={(e) => setNewStudentEmail(e.target.value)}
-              style={styles.input}
-              required
-            />
-            <button type="submit" style={styles.primaryButton}>Guardar alumno</button>
-          </form>
-        </div>
-
-        <div style={styles.card}>
           <h3>Materias</h3>
           <div style={styles.list}>
             {subjects.length === 0 ? (
@@ -295,7 +200,14 @@ export default function Profesor() {
                           {expandedSubjectId === subject.id ? 'Ocultar alumnos' : 'Ver alumnos'}
                         </button>
                         <button type="button" onClick={() => startEditingSubject(subject)} style={styles.secondaryButton}>Editar</button>
-                        <button type="button" onClick={() => handleDeleteSubject(subject.id)} style={styles.dangerButton}>Eliminar</button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSubject(subject.id)}
+                          style={styles.dangerButton}
+                          aria-label={`Eliminar materia ${subject.name}`}
+                        >
+                          Eliminar
+                        </button>
                       </div>
                     </div>
                     <span>{subject.description}</span>
@@ -312,39 +224,11 @@ export default function Profesor() {
                                   <strong>{student.name}</strong>
                                   <div>{student.email}</div>
                                 </div>
-                                <div style={styles.inlineButtons}>
-                                  <button type="button" onClick={() => startEditingStudent(student)} style={styles.secondaryButton}>Editar</button>
-                                  <button type="button" onClick={() => handleDeleteStudent(student.id)} style={styles.dangerButton}>Eliminar</button>
-                                </div>
                               </div>
                             ))}
                           </div>
                         )}
 
-                        {selectedStudent && (
-                          <form onSubmit={handleEditStudent} style={{ ...styles.form, marginTop: '1rem' }}>
-                            <input
-                              type="text"
-                              placeholder="Nombre del alumno"
-                              value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
-                              style={styles.input}
-                              required
-                            />
-                            <input
-                              type="email"
-                              placeholder="Email del alumno"
-                              value={editEmail}
-                              onChange={(e) => setEditEmail(e.target.value)}
-                              style={styles.input}
-                              required
-                            />
-                            <div style={styles.inlineButtons}>
-                              <button type="submit" style={styles.primaryButton}>Guardar cambios</button>
-                              <button type="button" onClick={() => setSelectedStudent(null)} style={styles.secondaryButton}>Cancelar</button>
-                            </div>
-                          </form>
-                        )}
                       </div>
                     )}
                   </div>
@@ -440,7 +324,7 @@ const styles = {
     padding: '0.5rem 0.8rem',
     backgroundColor: '#be123c',
     color: 'white',
-    border: 'none',
+    border: '1px solid #9f1239',
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 600

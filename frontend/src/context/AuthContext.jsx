@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
 
       setUser(loggedUser);
       localStorage.setItem('token', token);
-      return true;
+      return loggedUser.role;
     } catch (error) {
       console.error('Error en login:', error);
       return false;
