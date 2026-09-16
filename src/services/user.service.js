@@ -27,11 +27,11 @@ export const createUserService = async ({ name, email, password, role }) => {
       failed_login_attempts,
       locked
     )
-    VALUES ($1, $2, $3, $4)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING id, name, email, role, created_at
   `;
 
-  const values = [name, email, passwordHash, normalizedRole];
+  const values = [name, email, passwordHash, normalizedRole, 0, false];
 
   const { rows } = await pool.query(query, values);
 
