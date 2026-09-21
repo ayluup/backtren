@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.1.40:3000';
+
 export default function Login() {
   const [showRegister, setShowRegister] = useState(false);
   const [name, setName] = useState('');
@@ -29,7 +31,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      await axios.post('http://localhost:3000/api/users/register', {
+      await axios.post(`${API_BASE_URL}/api/users/register`, {
         name,
         email,
         password,

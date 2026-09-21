@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
-const API = 'http://localhost:3000';
+const API = import.meta.env.VITE_API_URL || 'http://192.168.1.40:3000';
 
 export default function Profesor() {
   const { user, logout } = useAuth();
