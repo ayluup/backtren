@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Academic API Console</string>
+    <string name="title_activity_main">Academic API Console</string>
+    <string name="package_name">om.aylu18.academicapiconsole</string>
+    <string name="custom_url_scheme">om.aylu18.academicapiconsole</string>
+</resources>
