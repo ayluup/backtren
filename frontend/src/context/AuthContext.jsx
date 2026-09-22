@@ -1,8 +1,6 @@
 import { createContext, useState, useContext } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.1.40:3000';
-
 const AuthContext = createContext();
 
 const normalizeRole = (role) => {
@@ -34,7 +32,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/users/login`, {
+      const response = await axios.post('https://localhost:3000/api/users/login', {
         email,
         password,
       });
